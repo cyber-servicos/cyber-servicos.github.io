@@ -1,0 +1,7 @@
+# nada de dado de cliente no repositório público
+dados/
+*.jsonl
+.secrets/
+serve.py
+.DS_Store
+node_modules/

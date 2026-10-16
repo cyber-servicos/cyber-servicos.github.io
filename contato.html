@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contato e cadastro — [NOME]</title>
+<meta name="description" content="Fale com a gente ou deixe seu e-mail para receber novidades dos serviços. Aviso de privacidade, finalidade, guarda e exclusão dos dados.">
+<meta name="theme-color" content="#12141a">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="index.html">[NOME]<span>.</span></a>
+    <nav aria-label="Navegação principal">
+      <ul>
+        <li><a href="index.html">Início</a></li>
+        <li><a href="servicos.html">Serviços</a></li>
+        <li><a href="contato.html" aria-current="page">Contato</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <section class="wrap">
+    <p class="eyebrow">Contato e cadastro</p>
+    <h1>Escreva o que você precisa. Respondemos em até 1 dia útil.</h1>
+    <p class="lead">Se o assunto for orçamento, duas linhas bastam: o que é o alvo (ou a tarefa) e o que você quer no fim.</p>
+    <hr class="rule">
+  </section>
+
+  <section class="wrap">
+    <h2>Formulário</h2>
+    <!-- PRODUÇÃO: troque action/data-endpoint pelo endpoint que recebe o POST
+         (Cloudflare Pages Function, Formspree, Buttondown...). Em teste local usa /api/lead. -->
+    <form id="leadForm" method="post" action="/api/lead" novalidate>
+      <label for="nome">Nome</label>
+      <input id="nome" name="nome" type="text" autocomplete="name" required maxlength="120">
+
+      <label for="email">E-mail</label>
+      <input id="email" name="email" type="email" autocomplete="email" required maxlength="160">
+
+      <label for="assunto">Assunto</label>
+      <select id="assunto" name="assunto" required>
+        <option value="">Escolha uma opção</option>
+        <option value="orcamento-seguranca">Orçamento — teste de segurança</option>
+        <option value="orcamento-automacao">Orçamento — automação / script / painel</option>
+        <option value="orcamento-dados">Orçamento — dados, planilha, extração</option>
+        <option value="duvida">Dúvida geral</option>
+        <option value="novidades">Só quero receber novidades (sem orçamento)</option>
+      </select>
+
+      <label for="mensagem">Mensagem</label>
+      <textarea id="mensagem" name="mensagem" maxlength="4000" placeholder="Ex.: preciso testar a API de um app meu, tenho autorização por escrito; ou: quero automatizar a consolidação de 40 planilhas por mês."></textarea>
+
+      <!-- honeypot: humano não preenche, robô preenche -->
+      <div class="hp" aria-hidden="true">
+        <label for="site_url">Não preencha este campo</label>
+        <input id="site_url" name="site_url" type="text" tabindex="-1" autocomplete="off">
+      </div>
+
+      <div class="check">
+        <input id="consent" name="consent" type="checkbox" value="sim" required>
+        <label for="consent">
+          Autorizo guardar meu nome e e-mail para responder este contato e, se marcado "só novidades",
+          para receber avisos dos serviços. Li o aviso de privacidade abaixo e sei que posso pedir
+          exclusão a qualquer momento.
+        </label>
+      </div>
+
+      <div class="btns">
+        <button class="btn primary" type="submit" id="enviar">Enviar</button>
+      </div>
+      <p id="formMsg" role="status"></p>
+    </form>
+  </section>
+
+  <section class="wrap">
+    <h2>Aviso de privacidade</h2>
+    <div class="cols">
+      <div>
+        <h3>O que guardamos</h3>
+        <p class="muted">Nome, e-mail, assunto e a mensagem que você escrever — nada além disso. Não usamos cookie de rastreamento nem perfilamento, e não vendemos nem cedemos seus dados.</p>
+        <h3>Para quê</h3>
+        <p class="muted">Responder seu contato e, se você autorizou, enviar avisos dos serviços. Base legal: seu consentimento, que você pode retirar quando quiser.</p>
+      </div>
+      <div>
+        <h3>Por quanto tempo</h3>
+        <p class="muted">Contato comercial: até 12 meses após a última conversa. Lista de novidades: até você pedir para sair — todo e-mail enviado leva link de descadastro.</p>
+        <h3>Como pedir acesso ou exclusão</h3>
+        <p class="muted">Escreva para <a href="mailto:[email]">[email]</a> com o assunto "dados" e o e-mail usado no cadastro. Atendemos em até 15 dias, normalmente em 2.</p>
+      </div>
+    </div>
+    <p class="small muted">Se este site for publicado fora do Brasil, mantenha este aviso e acrescente a regra local aplicável (por exemplo GDPR).</p>
+  </section>
+</main>
+
+<footer class="site">
+  <div class="wrap">
+    <div>[NOME] · [cidade] · <span class="muted">CNPJ [se houver]</span></div>
+    <div>Contato: <a href="mailto:[email]">[email]</a></div>
+  </div>
+</footer>
+
+<script>
+const form = document.getElementById("leadForm");
+const msg = document.getElementById("formMsg");
+
+/* Backend do cadastro.
+   null  = ainda nao configurado (site publico estatico, sem servidor de POST).
+   Quando ligar o backend, troque por a URL do endpoint, ex.:
+   const ENDPOINT = "https://script.google.com/macros/s/AKfy.../exec";  */
+const ENDPOINT = null;
+const EMAIL_FALLBACK = "[email]";
+const endpoint = ENDPOINT || form.getAttribute("action");
+
+function show(text, ok){
+  msg.textContent = text;
+  msg.className = (ok === "info") ? "info" : (ok ? "ok" : "err");
+}
+
+form.addEventListener("submit", async (ev) => {
+  ev.preventDefault();
+  const dados = Object.fromEntries(new FormData(form).entries());
+
+  if (!dados.nome || dados.nome.trim().length < 2) return show("Escreva seu nome.", false);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(dados.email || "")) return show("E-mail inválido.", false);
+  if (!dados.assunto) return show("Escolha o assunto.", false);
+  if (!dados.consent) return show("Precisa autorizar o uso dos dados para enviar.", false);
+  if (dados.site_url) return show("Envio bloqueado.", false); // honeypot
+
+  if (!ENDPOINT){
+    // site estatico sem backend: nao perde o contato, manda por e-mail
+    return show("O envio pelo formulário ainda não está ligado. Escreva para " + EMAIL_FALLBACK +
+                " com o mesmo texto — respondemos em até 1 dia útil.", "info");
+  }
+
+  try{
+    const r = await fetch(endpoint, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({nome: dados.nome, email: dados.email, assunto: dados.assunto,
+                            mensagem: dados.mensagem, consent: true})
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) return show(j.erro || ("Não deu para enviar agora. Tente por e-mail: " + EMAIL_FALLBACK + "."), false);
+    form.reset();
+    show("Recebemos seu contato. Respondemos em até 1 dia útil.", true);
+  }catch(e){
+    show("Falha de rede. Tente de novo ou escreva para " + EMAIL_FALLBACK + ".", false);
+  }
+});
+</script>
+</body>
+</html>
